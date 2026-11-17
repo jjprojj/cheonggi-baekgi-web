@@ -395,6 +395,7 @@ svg [hidden]{display:none !important}
     <button class="tgl" id="tgHaptic" aria-pressed="true">진동</button>
   </div>
   <button class="cta" id="go">오늘의 문제 시작</button>
+  <a id="getApp" href="https://onesto.re/0001012870" hidden style="margin:10px auto 0;text-align:center;font-size:14px;font-weight:700;color:inherit;text-decoration:underline">원스토어에서 앱 설치하고 이어서 하기</a>
   <button class="ghost" id="practice">연습하기 (매번 새 문제)</button>
   <button class="link" id="helpBtn">게임 설명 자세히 보기</button>
   <p class="rating" aria-label="이용등급 전체이용가">이용등급 · <b>전체이용가</b> (IARC 3+) · 자체등급분류 게임물</p>
@@ -820,6 +821,7 @@ $('#diffChips').addEventListener('click',e=>{const b=e.target.closest('.chip');i
 let PENDING=null;
 try{const q=new URLSearchParams(location.search),c=(q.get('c')||'').toUpperCase(),d=q.get('d');
   if(/^[A-Z0-9-]{4,16}$/.test(c)){PENDING={code:c,diff:DIFFS[d]?d:'normal'};history.replaceState(null,'',location.pathname)}}catch(e){}
+try{const inApp=matchMedia('(display-mode: standalone)').matches||(document.referrer||'').indexOf('android-app://')===0;if(!inApp&&/Android/i.test(navigator.userAgent)){$('#getApp').hidden=false;$('#getApp').style.display='block'}}catch(e){}
 $('#go').onclick=()=>{if(PENDING){const x=PENDING;PENDING=null;drawDiff();startGame(x.code,false,x.diff)}else startGame('D'+dayKey(),true,P.diff)};
 $('#harder').onclick=()=>{const nx={easy:'normal',normal:'hard'}[S.diff];if(!nx)return;P.diff=nx;saveP();drawDiff();startGame(S.daily?S.code:newCode(),S.daily,nx)};
 function openHelp(){const h=$('#help');h.hidden=false;h.scrollTop=0}
