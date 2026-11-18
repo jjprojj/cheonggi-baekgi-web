@@ -785,7 +785,7 @@ function shareLink(){return BASE+'?c='+encodeURIComponent(S.code)+'&d='+encodeUR
 function shareText(){
   const g=gradeFor(S.ok);
   const w=P.wager?`, 진 사람이 ${P.wager} 쏘기`:'';
-  return `청기백기 난이도 '${DIFFS[S.diff].name}'에서 ${S.score.toLocaleString('ko-KR')}점 찍었어. 같은 문제로 한판 붙자${w}! 아래 링크를 누르면 내가 푼 문제 그대로 시작해.\n${shareLink()}`;
+  return `청기백기 난이도 '${DIFFS[S.diff].name}'에서 ${S.score.toLocaleString('ko-KR')}점 찍었어. 같은 문제로 한판 붙자${w}! 링크를 누르면 내가 푼 문제 그대로 시작해.\n${shareLink()}\n\n앱이 없으면 여기서 설치: https://onesto.re/0001012870`;
 }
 function confetti(){
   const box=document.createElement('div');box.className='confetti';
@@ -834,7 +834,7 @@ $('#fresh').onclick=()=>startGame(newCode(),false,S.diff);
 $('#home').onclick=()=>{S.state='idle';$('#result').hidden=true;$('#start').hidden=false};
 $('#copy').onclick=async()=>{
   const t=shareText();
-  if(navigator.share){try{await navigator.share({title:'청기백기: 깃발대결',text:t});return}catch(e){if(e&&e.name==='AbortError')return}}
+  if(navigator.share){try{await navigator.share({text:t});return}catch(e){if(e&&e.name==='AbortError')return}}
   try{await navigator.clipboard.writeText(t);toast('복사했어요. 친구에게 붙여넣어 보내세요')}
   catch(e){const b=$('#shareBox');b.value=t;b.hidden=false;b.focus();b.select();toast('아래 문구를 길게 눌러 복사하세요')}
 };
