@@ -491,6 +491,10 @@ svg [hidden]{display:none !important}
 .eqt small{font-weight:600;color:var(--ink-soft)}
 .lvs{display:flex;gap:4px}.lvs i{width:14px;height:14px;border-radius:4px;border:2px solid var(--ink);background:#fff}.lvs i.on{background:var(--sun)}
 .eqc button{border:3px solid var(--ink);border-radius:14px;padding:10px 12px;font:inherit;font-weight:800;background:var(--sun);color:var(--ink);cursor:pointer;min-width:64px}
+.eqhow{background:#fff;border:3px solid var(--ink);border-radius:18px;padding:10px 14px;margin:8px 0 12px;font-size:14px;line-height:1.5}
+.eqhow ol{margin:6px 0 0;padding-left:20px}.eqhow li{margin:2px 0}
+.eqn{margin-top:4px;font-size:13px;font-weight:800}.eqn .nx{color:#C2410C}
+.eqc button small{display:block;font-size:11px;font-weight:700;opacity:.85;margin-top:1px}
 .eqb{display:flex;flex-direction:column;gap:6px}
 .eqc button.adi{background:var(--coral);color:#fff;font-size:12px;padding:7px 8px}
 .eqc button.adi:disabled{background:var(--line);color:var(--ink-soft)}
@@ -637,6 +641,11 @@ html[data-th="night"] .stage .hero{filter:drop-shadow(0 0 10px rgba(255,255,255,
   <div class="hq"><h2>장비 강화</h2><button class="xbtn" id="shopClose">닫기</button></div>
   <div class="mascot" id="shopMascot"></div>
   <p class="cintro" style="min-height:0;margin:0">내 별 <b id="shopFp"></b>개 · <span id="shopHero"></span></p>
+  <div class="eqhow"><b>장비 강화 방법</b>
+    <ol><li>카드마다 <b>지금 효과 → 다음 효과</b>가 보여요.</li>
+    <li><b>★ 별</b>이 충분하면 별 버튼으로 바로 강화해요.</li>
+    <li>별이 모자라면 <b>📺 광고 버튼</b>을 눌러요. 정해진 횟수(예: 1/3)를 채우면 <b>별 없이 무료로 강화</b>돼요.</li>
+    <li>광고는 하루 8번까지예요. 맨 아래 버튼은 광고 1번에 별 50개를 줘요.</li></ol></div>
   <div class="eqlist" id="shopGrid"></div>
   <button class="cta adbtn" id="shopAd" type="button"></button>
   <p class="rknote">장비는 모험과 용사의 탑 모두에서 효과가 있어요. 별이 모자라면 광고를 보고 모을 수 있어요.</p>
@@ -1196,6 +1205,7 @@ const EQ={
  charm:{n:'행운 부적',e:'실수를 단계마다 1번 봐줘요',max:3,cost:[220,480,900]},
  pouch:{n:'별 주머니',e:'대결에서 받는 별이 단계마다 +10% 늘어요',max:5,cost:[150,270,450,680,980]},
  herb:{n:'응원 약초',e:'연속으로 맞히면 하트가 1개 돌아와요 (8 · 6 · 4연속)',max:3,cost:[300,600,1050]}};
+const EFF={flag:l=>l?`시간 +${l*6}%`:'효과 없음',shield:l=>`하트 ${3+l}개`,charm:l=>l?`실수 ${l}번 봐줌`:'효과 없음',pouch:l=>l?`별 +${l*10}%`:'효과 없음',herb:l=>l?`${[0,8,6,4][l]}연속마다 하트+1`:'효과 없음'};
 const AD_STARS=50,AD_DAILY=8;
 const adNeed=c=>Math.max(1,Math.ceil(c/100));
 const herbN=lv=>[0,8,6,4][lv]||0;
@@ -1535,7 +1545,7 @@ function drawShop(){
   $('#shopHero').textContent=`시간 +${ef*6}% · 하트 ${3+es}개 · 부적 ${ec}번 · 별 +${eq('pouch')*10}% · 약초 ${eq('herb')?herbN(eq('herb'))+'연속':'없음'}`;
   const ad=adLeft();const ab=$('#shopAd');ab.innerHTML=ad>0?`📺 광고 보고 별 ${AD_STARS}개 받기<small>오늘 ${ad}번 남음</small>`:'오늘 광고 보상을 모두 받았어요';ab.disabled=ad<=0;
   $('#shopGrid').innerHTML=Object.keys(EQ).map(k=>{const d=EQ[k],lv=eq(k),full=lv>=d.max,c=d.cost[lv];
-    return `<div class="eqc"><div class="eqi">${EQSVG[k]}</div><div class="eqt"><b>${d.n}</b><span class="lvs">${Array.from({length:d.max},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</span><small>${d.e}</small></div><div class="eqb"><button data-k="${k}" class="${!full&&G.coin<c?'no':''}" ${full?'disabled':''}>${full?'최대':'★ '+c}</button>${full?'':`<button class="adi" data-a="${k}" ${adLeft()<=0?'disabled':''}>📺 광고 ${(G.adp&&G.adp[k])||0}/${adNeed(c)}</button>`}</div></div>`}).join('');
+    return `<div class="eqc"><div class="eqi">${EQSVG[k]}</div><div class="eqt"><b>${d.n}</b><span class="lvs">${Array.from({length:d.max},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</span><small>${d.e}</small>${full?`<div class="eqn">지금 <b>${EFF[k](lv)}</b> (최대)</div>`:`<div class="eqn">지금 <b>${EFF[k](lv)}</b> → 다음 <b class="nx">${EFF[k](lv+1)}</b></div>`}</div><div class="eqb"><button data-k="${k}" class="${!full&&G.coin<c?'no':''}" ${full?'disabled':''}>${full?'최대':'★ '+c+'<small>별로 강화</small>'}</button>${full?'':`<button class="adi" data-a="${k}" ${adLeft()<=0?'disabled':''}>📺 ${(G.adp&&G.adp[k])||0}/${adNeed(c)}<small>광고로 강화</small></button>`}</div></div>`}).join('');
   $('#shopGrid').querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.k,d=EQ[k],lv=eq(k);if(lv>=d.max)return;const c=d.cost[lv];
     if(G.coin<c){toast(`별이 ${c-G.coin}개 모자라요. 광고를 보면 별 ${AD_STARS}개를 받아요`);const a=$('#shopAd');a.classList.remove('pulse');void a.offsetWidth;a.classList.add('pulse');return}
