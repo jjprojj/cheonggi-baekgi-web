@@ -1201,11 +1201,11 @@ let cur=null,adUsed=false;
 const R={lives:3,max:3,charm:0};
 const EQ={
  flag:{n:'여유의 모래시계',e:'모든 대결의 제한 시간이 단계마다 +6% 늘어요',max:5,cost:[90,160,280,450,680]},
- shield:{n:'수호 방패',e:'하트가 단계마다 1개 늘어요',max:3,cost:[180,420,780]},
- charm:{n:'행운 부적',e:'실수를 단계마다 1번 봐줘요',max:3,cost:[220,480,900]},
+ shield:{n:'수호 방패',e:'하트(목숨)가 단계마다 1개 늘어요. 틀리면 하트가 깎여요',max:3,cost:[180,420,780]},
+ charm:{n:'행운 부적',e:'한 대결에서 틀려도 하트가 안 깎이는 횟수가 단계마다 1번씩 늘어요',max:3,cost:[320,680,1200]},
  pouch:{n:'별 주머니',e:'대결에서 받는 별이 단계마다 +10% 늘어요',max:5,cost:[150,270,450,680,980]},
- herb:{n:'응원 약초',e:'연속으로 맞히면 하트가 1개 돌아와요 (8 · 6 · 4연속)',max:3,cost:[300,600,1050]}};
-const EFF={flag:l=>l?`시간 +${l*6}%`:'효과 없음',shield:l=>`하트 ${3+l}개`,charm:l=>l?`실수 ${l}번 봐줌`:'효과 없음',pouch:l=>l?`별 +${l*10}%`:'효과 없음',herb:l=>l?`${[0,8,6,4][l]}연속마다 하트+1`:'효과 없음'};
+ herb:{n:'응원 약초',e:'정답을 연속으로 맞히면 하트 1개가 돌아와요. 강화할수록 적은 횟수로 돌아와요',max:3,cost:[300,600,1050]}};
+const EFF={flag:l=>l?`시간 +${l*6}%`:'효과 없음',shield:l=>`하트 ${3+l}개`,charm:l=>l?`틀려도 하트 안 깎임 ${l}번`:'효과 없음',pouch:l=>l?`별 +${l*10}%`:'효과 없음',herb:l=>l?`${[0,8,6,4][l]}번 연속 정답 → 하트 +1`:'효과 없음'};
 const AD_STARS=50,AD_DAILY=8;
 const adNeed=c=>Math.max(1,Math.ceil(c/100));
 const herbN=lv=>[0,8,6,4][lv]||0;
@@ -1542,7 +1542,7 @@ function drawShop(){
   $('#shopFp').textContent=num(G.coin);
   $('#shopMascot').innerHTML=CH[P.char].mascot;applyAcc();
   const ef=eq('flag'),es=eq('shield'),ec=eq('charm');
-  $('#shopHero').textContent=`시간 +${ef*6}% · 하트 ${3+es}개 · 부적 ${ec}번 · 별 +${eq('pouch')*10}% · 약초 ${eq('herb')?herbN(eq('herb'))+'연속':'없음'}`;
+  $('#shopHero').textContent=`시간 +${ef*6}% · 하트 ${3+es}개 · 부적 ${ec}번 · 별 +${eq('pouch')*10}% · 약초 ${eq('herb')?herbN(eq('herb'))+'번 연속 정답':'없음'}`;
   const ad=adLeft();const ab=$('#shopAd');ab.innerHTML=ad>0?`📺 광고 보고 별 ${AD_STARS}개 받기<small>오늘 ${ad}번 남음</small>`:'오늘 광고 보상을 모두 받았어요';ab.disabled=ad<=0;
   $('#shopGrid').innerHTML=Object.keys(EQ).map(k=>{const d=EQ[k],lv=eq(k),full=lv>=d.max,c=d.cost[lv];
     return `<div class="eqc"><div class="eqi">${EQSVG[k]}</div><div class="eqt"><b>${d.n}</b><span class="lvs">${Array.from({length:d.max},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</span><small>${d.e}</small>${full?`<div class="eqn">지금 <b>${EFF[k](lv)}</b> (최대)</div>`:`<div class="eqn">지금 <b>${EFF[k](lv)}</b> → 다음 <b class="nx">${EFF[k](lv+1)}</b></div>`}</div><div class="eqb"><button data-k="${k}" class="${!full&&G.coin<c?'no':''}" ${full?'disabled':''}>${full?'최대':'★ '+c+'<small>별로 강화</small>'}</button>${full?'':`<button class="adi" data-a="${k}" ${adLeft()<=0?'disabled':''}>📺 ${(G.adp&&G.adp[k])||0}/${adNeed(c)}<small>광고로 강화</small></button>`}</div></div>`}).join('');
