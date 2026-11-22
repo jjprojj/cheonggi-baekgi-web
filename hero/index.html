@@ -648,7 +648,7 @@ html[data-th="night"] .stage .hero{filter:drop-shadow(0 0 10px rgba(255,255,255,
     <li>광고는 하루 8번까지예요. 맨 아래 버튼은 광고 1번에 별 50개를 줘요.</li></ol></div>
   <div class="eqlist" id="shopGrid"></div>
   <button class="cta adbtn" id="shopAd" type="button"></button>
-  <p class="rknote">장비는 모험과 용사의 탑 모두에서 효과가 있어요. 별이 모자라면 광고를 보고 모을 수 있어요.</p>
+  <p class="rknote">장비는 모험과 용사의 탑 모두에서 효과가 있어요. 용사의 탑은 하트 1개로 시작해서 한 번 틀리면 끝이에요. 장비로 하트를 늘려 더 높이 올라가요.</p>
 </div></div>
 
 <div class="overlay" id="rank" hidden><div class="sheet">
@@ -1201,17 +1201,17 @@ let cur=null,adUsed=false;
 const R={lives:3,max:3,charm:0};
 const EQ={
  flag:{n:'여유의 모래시계',e:'모든 대결의 제한 시간이 단계마다 +6% 늘어요',max:5,cost:[90,160,280,450,680]},
- shield:{n:'수호 방패',e:'하트(목숨)가 단계마다 1개 늘어요. 틀리면 하트가 깎여요',max:3,cost:[180,420,780]},
+ shield:{n:'수호 방패',e:'하트(목숨)가 단계마다 1개 늘어요. 모험은 기본 3개, 용사의 탑은 기본 1개에서 시작해요',max:3,cost:[180,420,780]},
  charm:{n:'행운 부적',e:'한 대결에서 틀려도 하트가 안 깎이는 횟수가 단계마다 1번씩 늘어요',max:3,cost:[320,680,1200]},
  pouch:{n:'별 주머니',e:'대결에서 받는 별이 단계마다 +10% 늘어요',max:5,cost:[150,270,450,680,980]},
- herb:{n:'응원 약초',e:'정답을 연속으로 맞히면 하트 1개가 돌아와요. 강화할수록 적은 횟수로 돌아와요',max:3,cost:[300,600,1050]}};
-const EFF={flag:l=>l?`시간 +${l*6}%`:'효과 없음',shield:l=>`하트 ${3+l}개`,charm:l=>l?`틀려도 하트 안 깎임 ${l}번`:'효과 없음',pouch:l=>l?`별 +${l*10}%`:'효과 없음',herb:l=>l?`${[0,8,6,4][l]}번 연속 정답 → 하트 +1`:'효과 없음'};
+ herb:{n:'응원 약초',e:'정답을 연속으로 맞히면 하트 1개가 돌아와요. 강화할수록 적은 횟수로 돌아와요. 용사의 탑에서는 최대 2개까지 더 쌓여요',max:3,cost:[300,600,1050]}};
+const EFF={flag:l=>l?`시간 +${l*6}%`:'효과 없음',shield:l=>`하트 모험 ${3+l} · 탑 ${1+l}개`,charm:l=>l?`틀려도 하트 안 깎임 ${l}번`:'효과 없음',pouch:l=>l?`별 +${l*10}%`:'효과 없음',herb:l=>l?`${[0,8,6,4][l]}번 연속 정답 → 하트 +1`:'효과 없음'};
 const AD_STARS=50,AD_DAILY=8;
 const adNeed=c=>Math.max(1,Math.ceil(c/100));
 const herbN=lv=>[0,8,6,4][lv]||0;
 const eq=k=>(G.eq&&G.eq[k])||0;
 const HEART='<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.5-9C.8 8.7 2.7 5 6.2 5c2 0 3.3 1.1 3.8 2 .5-.9 1.8-2 3.8-2 3.5 0 5.4 3.7 3.7 7C19 16.4 12 21 12 21z"/></svg>';
-function drawLives(){$('#lives').innerHTML=Array.from({length:R.max},(_,k)=>k).map(k=>HEART.replace('<svg','<svg class="'+(k<R.lives?'':'off')+'"')).join('')}
+function drawLives(){$('#lives').innerHTML=Array.from({length:Math.max(R.max,R.lives)},(_,k)=>k).map(k=>HEART.replace('<svg','<svg class="'+(k<R.lives?'':'off')+'"')).join('')}
 function buildBar(v,label,ty){$('#pips').innerHTML=`<div class="vstrip"><div class="vport" id="vPort">${vilSvg(v)}</div><div class="vinfo"><b>${label}</b>${ty?`<small class="vty">${ty}</small>`:''}<div class="hp"><i id="pfill"></i></div></div></div>`}
 function setBar(done){if(cur&&cur.mode==='tower')return;const f=$('#pfill');if(f)f.style.width=Math.max(0,100-Math.round(done/S.qs.length*100))+'%'}
 function vilHit(){const p=$('#vPort');if(!p)return;p.classList.remove('hit');void p.offsetWidth;p.classList.add('hit')}
@@ -1321,7 +1321,7 @@ function startBattle(){
   const T=cur;let qs;
   if(T.mode==='story'){const v=T.v;qs=vilQs(v,'s'+Math.random());if(v.boss)qs=qs.concat(vilQs({n:'끝대왕',s:11,cfg:'boss'},'b'+Math.random()).slice(0,4))}
   else qs=[towerQ(1)];
-  const st=true;R.max=3+eq('shield');R.charm=eq('charm');R.tm=1+.06*eq('flag');R.herb=herbN(eq('herb'));R.lives=R.max;S.combo=0;S.maxCombo=0;S.qs=qs;S.i=-1;S.state='ready';
+  const st=true;R.max=(T.mode==='tower'?1:3)+eq('shield');R.charm=eq('charm');R.tm=1+.06*eq('flag');R.herb=herbN(eq('herb'));R.lives=R.max;S.combo=0;S.maxCombo=0;S.qs=qs;S.i=-1;S.state='ready';
   applyTheme(T.mode==='story'?T.v.th:T.th);
   ['res','start','map','rank','shop'].forEach(k=>$('#'+k).hidden=true);
   $('#pad').classList.add('off');
@@ -1330,7 +1330,7 @@ function startBattle(){
   drawLives();hud();
   pose('B','down');pose('W','down');face('happy');
   $('#cmdText').innerHTML='<span class="seg ready">준비!</span>';
-  setHint(T.mode==='story'?(T.i===0&&!G.stars[0]?'구호대로 버튼을 눌러요!':v.ty+' 시작!'):'집중! 틀리면 하트가 줄어요');
+  setHint(T.mode==='story'?(T.i===0&&!G.stars[0]?'구호대로 버튼을 눌러요!':v.ty+' 시작!'):(R.max>1?'집중! 틀리면 하트가 줄어요':'하트 1개! 한 번 틀리면 끝이에요'));
   $('#timerFill').style.transform='scaleX(1)';
   track('battle',{m:T.mode,i:T.i});
   tone(440,.12,'triangle');say('준비!','n');
@@ -1372,7 +1372,7 @@ function success(){
   S.state='fb';cancelAnimationFrame(S.raf);hush();
   const el1=(performance.now()-S.t0)/1000,rem=S.q.stop?1:Math.max(0,Math.min(1,1-(el1-S.q.cue)/S.q.margin));
   S.combo++;S.maxCombo=Math.max(S.maxCombo,S.combo);
-  if(R.herb&&S.combo%R.herb===0&&R.lives<R.max){R.lives++;drawLives();setTimeout(()=>floatText('응원 약초! 하트 +1 💚'),350)}
+  if(R.herb&&S.combo%R.herb===0&&R.lives<(cur.mode==='tower'?R.max+2:R.max)){R.lives++;drawLives();setTimeout(()=>floatText('응원 약초! 하트 +1 💚'),350)}
   face('happy');floatText(S.q.stop?'참았다!':'명중!');stageFx('hop');hud();setBar(S.i+1);vilHit();
   if(cur.mode==='tower'){const gain=Math.round(S.q.pts*multFor(S.combo));cur.score+=gain;cur.steps++;$('#qn').textContent=cur.steps+1;$('#stgLbl').textContent=`용사의 탑 · ${cur.score}점`;towerBar();floatText(`+${gain}점`)}
   buzz(20);tone(660,.09,'triangle',.08);tone(880,.12,'triangle',.08,.08);
@@ -1542,7 +1542,7 @@ function drawShop(){
   $('#shopFp').textContent=num(G.coin);
   $('#shopMascot').innerHTML=CH[P.char].mascot;applyAcc();
   const ef=eq('flag'),es=eq('shield'),ec=eq('charm');
-  $('#shopHero').textContent=`시간 +${ef*6}% · 하트 ${3+es}개 · 부적 ${ec}번 · 별 +${eq('pouch')*10}% · 약초 ${eq('herb')?herbN(eq('herb'))+'번 연속 정답':'없음'}`;
+  $('#shopHero').textContent=`시간 +${ef*6}% · 하트 모험 ${3+es}·탑 ${1+es}개 · 부적 ${ec}번 · 별 +${eq('pouch')*10}% · 약초 ${eq('herb')?herbN(eq('herb'))+'번 연속 정답':'없음'}`;
   const ad=adLeft();const ab=$('#shopAd');ab.innerHTML=ad>0?`📺 광고 보고 별 ${AD_STARS}개 받기<small>오늘 ${ad}번 남음</small>`:'오늘 광고 보상을 모두 받았어요';ab.disabled=ad<=0;
   $('#shopGrid').innerHTML=Object.keys(EQ).map(k=>{const d=EQ[k],lv=eq(k),full=lv>=d.max,c=d.cost[lv];
     return `<div class="eqc"><div class="eqi">${EQSVG[k]}</div><div class="eqt"><b>${d.n}</b><span class="lvs">${Array.from({length:d.max},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</span><small>${d.e}</small>${full?`<div class="eqn">지금 <b>${EFF[k](lv)}</b> (최대)</div>`:`<div class="eqn">지금 <b>${EFF[k](lv)}</b> → 다음 <b class="nx">${EFF[k](lv+1)}</b></div>`}</div><div class="eqb"><button data-k="${k}" class="${!full&&G.coin<c?'no':''}" ${full?'disabled':''}>${full?'최대':'★ '+c+'<small>별로 강화</small>'}</button>${full?'':`<button class="adi" data-a="${k}" ${adLeft()<=0?'disabled':''}>📺 ${(G.adp&&G.adp[k])||0}/${adNeed(c)}<small>광고로 강화</small></button>`}</div></div>`}).join('');
