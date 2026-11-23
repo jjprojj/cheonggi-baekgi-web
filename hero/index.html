@@ -72,6 +72,7 @@ button{font-family:inherit}
 .hq{display:flex; align-items:center; justify-content:space-between; gap:12px}
 .hq h2{margin:0; font-family:var(--display); font-weight:400; font-size:34px; line-height:1.1}
 .xbtn{appearance:none; border:2px solid var(--ink); background:var(--card); color:var(--ink); border-radius:99px; padding:8px 16px; font-size:14px; font-weight:900; cursor:pointer}
+.hq .xbtn{order:-1}
 .xbtn:focus-visible{outline:3px solid var(--sun); outline-offset:2px}
 details.hd{background:var(--card); border-radius:20px; padding:0 16px}
 details.hd summary{cursor:pointer; list-style:none; padding:15px 0; font-weight:900; font-size:16px; display:flex; justify-content:space-between; align-items:center; gap:10px}
@@ -597,7 +598,7 @@ html[data-th="night"] .stage .hero{filter:drop-shadow(0 0 10px rgba(255,255,255,
 </div></div>
 
 <div class="overlay" id="map" hidden><div class="sheet">
-  <div class="hq"><h2>모험 지도</h2><button class="xbtn" id="mapClose">닫기</button></div>
+  <div class="hq"><h2>모험 지도</h2><button class="xbtn" id="mapClose">← 뒤로</button></div>
   <p class="cintro" id="mapHead" style="min-height:0;margin:0"></p>
   <div class="mapl" id="mapList"></div>
 </div></div>
@@ -624,7 +625,7 @@ html[data-th="night"] .stage .hero{filter:drop-shadow(0 0 10px rgba(255,255,255,
 </div></div>
 
 <div class="overlay" id="help" hidden><div class="sheet">
-  <div class="hq"><h2>게임 방법</h2><button class="xbtn" id="helpClose">닫기</button></div>
+  <div class="hq"><h2>게임 방법</h2><button class="xbtn" id="helpClose">← 뒤로</button></div>
   <ul class="hlp">
     <li>구호를 읽고, 시킨 버튼만 눌러요. 맞히면 빌런이 아파해요.</li>
     <li>"멈춰!"는 가만히, 색 함정은 글자를 읽어요. 꿈속에선 반대로!</li>
@@ -638,7 +639,7 @@ html[data-th="night"] .stage .hero{filter:drop-shadow(0 0 10px rgba(255,255,255,
 </div></div>
 
 <div class="overlay" id="shop" hidden><div class="sheet">
-  <div class="hq"><h2>장비 강화</h2><button class="xbtn" id="shopClose">닫기</button></div>
+  <div class="hq"><h2>장비 강화</h2><button class="xbtn" id="shopClose">← 뒤로</button></div>
   <div class="mascot" id="shopMascot"></div>
   <p class="cintro" style="min-height:0;margin:0">내 별 <b id="shopFp"></b>개 · <span id="shopHero"></span></p>
   <div class="eqhow"><b>장비 강화 방법</b>
@@ -652,7 +653,7 @@ html[data-th="night"] .stage .hero{filter:drop-shadow(0 0 10px rgba(255,255,255,
 </div></div>
 
 <div class="overlay" id="rank" hidden><div class="sheet">
-  <div class="hq"><h2>최고 용사 순위</h2><button class="xbtn" id="rankClose">닫기</button></div>
+  <div class="hq"><h2>최고 용사 순위</h2><button class="xbtn" id="rankClose">← 뒤로</button></div>
   <p class="cintro" id="rankHead" style="min-height:0;margin:0"></p>
   <ol class="rk" id="rankList" style="margin:0;padding:0"></ol>
   <p class="rknote">용사의 탑에서 점수가 높은 순이에요. 층과 점수가 함께 보여요. 월요일마다 새로 시작해요.<br>'예시'는 연습용 가상 라이벌이에요.</p>
@@ -1514,7 +1515,8 @@ async function openRank(){
 }
 
 /* ---- map ---- */
-function openMap(){hush();stopMusic();['res','dlg','shop','rank'].forEach(k=>$('#'+k).hidden=true);S.state='idle';clearLater();drawMap();$('#map').hidden=false;$('#map').scrollTop=0}
+let RETRES=false;
+function openMap(){RETRES=!$('#res').hidden;hush();stopMusic();['res','dlg','shop','rank'].forEach(k=>$('#'+k).hidden=true);S.state='idle';clearLater();drawMap();$('#map').hidden=false;$('#map').scrollTop=0}
 function drawMap(){
   $('#mapHead').textContent=`구호 조각 ${G.ch}/8 · 별 ${G.coin}개`;
   let h=VIL.map((v,i)=>{
@@ -1621,7 +1623,7 @@ $('#restartBtn').onclick=e=>{
 };
 $('#helpBtn').onclick=()=>{$('#help').hidden=false};
 $('#helpClose').onclick=$('#helpClose2').onclick=()=>{$('#help').hidden=true};
-$('#mapBtn').onclick=openMap;$('#mapClose').onclick=goHome;
+$('#mapBtn').onclick=openMap;$('#mapClose').onclick=()=>{if(RETRES){RETRES=false;$('#map').hidden=true;$('#res').hidden=false}else goHome()};
 $('#rankBtn').onclick=openRank;$('#rankClose').onclick=()=>{$('#rank').hidden=true};
 $('#rankGo').onclick=()=>{$('#rank').hidden=true;Math.max(G.ch,G.mx||0)>=TOWER_AT?startTower():openMap()};
 $('#shopBtn').onclick=()=>{drawShop();$('#shop').hidden=false;$('#shop').scrollTop=0};
