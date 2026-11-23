@@ -366,6 +366,7 @@ svg [hidden]{display:none !important}
 .stage .hero,.mascot .hero{scale:var(--grow,1)}
 .cpick button{position:relative}
 .cpick button.locked{filter:grayscale(1); opacity:.5}
+.cpick button.locked.adl::after{content:"광고 ▶"}
 .cpick button.locked::after{content:"잠금"; position:absolute; left:0; right:0; bottom:5px; font-size:11px; font-family:var(--display); color:var(--ink); text-align:center}
 .stats dd{font-size:21px}
 
@@ -749,9 +750,21 @@ const CH={"mongle": {"name": "몽글이", "tag": "손 씻다 태어난 거품 �
     c[f]=t;
   })});
 })();
+async function unlockHero(id){
+  if(HERO_AT[id]!=null){toast(`${HERO_AT[id]}장을 클리어하면 합류해요`);return}
+  if(Math.max(G.ch,G.mx||0)<8){toast('8장을 클리어하면 광고로 새 용사를 모실 수 있어요');return}
+  const nx=nextAdHero();
+  if(id!==nx){toast(nx?`먼저 ${heroName(nx)}부터 합류시켜 주세요`:'모든 용사가 합류했어요');return}
+  const need=AD_HERO[id]-(G.hads||0);
+  if(!confirm(`광고를 ${need}번 보면 ${heroName(id)}가 합류해요. 지금 볼까요?`))return;
+  const ok=await Net.rewardedAd();if(!ok){toast('광고를 불러오지 못했어요');return}
+  G.hads=(G.hads||0)+1;saveG();track('hero_ad',{id,n:G.hads});
+  if(G.unl[id]){toast(`${heroName(id)}가 합류했어요!`);setChar(id,true)}else toast(`광고 ${AD_HERO[id]-G.hads}번 더 보면 합류해요`);
+  drawHome();
+}
 function setChar(id,save){setChar0(id,save);applyAcc()}
 function setChar0(id,save){if(!CH[id]||!G.unl[id])id='mongle';P.char=id;if(save)saveP();document.documentElement.dataset.ch=id;const c=CH[id];$('#stage').innerHTML=c.stage;$('#mascot').innerHTML=c.mascot;$('#cname').innerHTML=heroName(id)+'<small>'+c.tag+'</small>';document.querySelectorAll('#cpick button').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.id===id)));applyTheme('')}
-(function(){const box=$('#cpick');box.innerHTML=Object.keys(CH).map(id=>`<button type="button" role="radio" data-id="${id}" aria-label="${CH[id].name}" style="background:${CH[id].bg}">${CH[id].thumb}</button>`).join('');box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.id;if(!G.unl[id]){toast(`${HERO_AT[id]}장을 클리어하면 합류해요`);return}setChar(id,true);drawHome()})})();
+(function(){const box=$('#cpick');box.innerHTML=Object.keys(CH).map(id=>`<button type="button" role="radio" data-id="${id}" aria-label="${CH[id].name}" style="background:${CH[id].bg}">${CH[id].thumb}</button>`).join('');box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.id;if(!G.unl[id]){unlockHero(id);return}setChar(id,true);drawHome()})})();
 
 let S={state:'idle',qs:[],i:-1,score:0,combo:0,maxCombo:0,ok:0,req:new Set(),pressed:new Set(),t0:0,win:0,raf:0,code:'',daily:true,diff:'normal',q:null,timers:[]};
 const later=(fn,ms)=>{const t=setTimeout(fn,ms);S.timers.push(t)};
@@ -908,7 +921,9 @@ function weekKey(){const d=kst(),dow=(d.getUTCDay()+6)%7;return new Date(d.getTi
 function dowK(){return (kst().getUTCDay()+6)%7}
 
 /* ---- story data ---- */
-const HERO_AT={mongle:0,mochi:2,jelly:4,pudding:6,jjin:8};
+const HERO_AT={mongle:0,mochi:4,jelly:8};
+const AD_HERO={pudding:1,jjin:3}; /* 광고 누적 시청 수: 푸딩 1번, 찐 2번 더 */
+const nextAdHero=()=>{const h=G.hads||0;return h<1?'pudding':h<3?'jjin':null};
 const TOWER_AT=3;
 const heroName=id=>CH[id].name.replace(/이$/,'')+'용사';
 const VIL=[
@@ -1010,7 +1025,7 @@ function vilSvg(v){
 /* ---- progress ---- */
 const GK='cgh';
 const G=Object.assign({ch:0,stars:{},coin:0,own:{},acc:{},tower:0,twk:{k:'',fl:0,sc:0},seen:0,lastPlay:0,t:0},(()=>{try{return JSON.parse(localStorage.getItem(GK)||'{}')}catch(e){return {}}})());
-Object.defineProperty(G,'unl',{enumerable:false,get(){const o={};for(const id in HERO_AT)o[id]=Math.max(G.ch,G.mx||0)>=HERO_AT[id];return o}});
+Object.defineProperty(G,'unl',{enumerable:false,get(){const o={};for(const id in HERO_AT)o[id]=Math.max(G.ch,G.mx||0)>=HERO_AT[id];for(const id in AD_HERO)o[id]=(G.hads||0)>=AD_HERO[id];return o}});
 const CL={db:null,uid:null,user:null};
 let cloudT=0;
 function saveG(){G.t=Date.now();try{localStorage.setItem(GK,JSON.stringify(G))}catch(e){}cloudSave();tossSave()}
@@ -1573,7 +1588,7 @@ function drawShop(){
 
 /* ---- home ---- */
 function drawHome(){
-  document.querySelectorAll('#cpick button').forEach(b=>b.classList.toggle('locked',!G.unl[b.dataset.id]));
+  document.querySelectorAll('#cpick button').forEach(b=>{b.classList.toggle('locked',!G.unl[b.dataset.id]);b.classList.toggle('adl',!G.unl[b.dataset.id]&&AD_HERO[b.dataset.id]!=null&&Math.max(G.ch,G.mx||0)>=8&&b.dataset.id===nextAdHero())});
   $('#pieces').innerHTML=Array.from({length:8},(_,i)=>`<i class="${i<G.ch?'on':''}">${i<G.ch?PCS[i]:''}</i>`).join('')+`<span>구호 조각 ${G.ch}/8</span>`;
   $('#goal').textContent=G.ch>=8?'구호를 모두 되찾았어요! 이제 용사의 탑에 도전해요':'목표: 일곱 부하와 대결해서 흩어진 구호 조각 8개를 되찾고, 끝대왕에게 가요';
   const ch=$('#chal');
